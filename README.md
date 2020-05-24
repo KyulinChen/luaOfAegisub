@@ -1,4 +1,8 @@
 # luaOfAegisub
 Aagisub's Lua plugin repository
 这是用来储存我写的一些aegisub脚本的仓库，以下是关于已经放入的脚本的说明：
-1.根据字典词义自动打kf值
+
+1.DicKfTagTool.lua:
+  根据字典词义切割语句，然后打上平局kf值。（需要先进行一系列操作）
+2.StyleSplitByChenKyulin.lua:
+  切割选择样式的语句，根据分隔符切割语句成为N行，给单数行添加其中一种样式，给双数行添加另外一种样式，同时支持判断是否去除单双数行的ASS标签，以及单双数行所在的层级。
