@@ -1,5 +1,5 @@
 # luaOfAegisub
-Aagisub's Lua plugin repository
+Aegisub's Lua plugin repository
 
 这是用来储存我写的一些aegisub脚本的仓库，以下是关于已经放入的脚本的说明，请放入Aegisub\automation\autoload下，每次打开aegisub会自动加载，当然你也可以打开aegisub后自行进行添加：
 
