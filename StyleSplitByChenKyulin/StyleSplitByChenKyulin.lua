@@ -1,9 +1,10 @@
-﻿
+
 script_name = "LineSplitBySpecifySeparator"
 script_description ="Use it to Split Styled Bilingual line to N lines with specific style\n将制定样式的行，根据分隔符，切割成多行，并且单双行可以指定样式.";
 script_author = "ChenKyulin";
-script_version = "1.0";
-script_last_update_date = "2020/05/24";
+script_version = "1.1";
+script_created = "2020/05/24";
+script_last_update_date = "2020/05/28";
 
 require "karaskel"
 require "re"
@@ -33,6 +34,9 @@ dialog_config=
 
 	[17]={class="label",x=0,y=3,width=1,hegiht=1,label="每一行双语字幕的时长(单位毫秒):"},--SetSecondPartStyle
 	[18]={class="edit",name="IntervalTime",x=1,y=3,width=1,height=1,value="5000"},
+	--add by chenKyulin 20200528 是否需要让单数行全在上面，双数行全在下面？
+	[19]={class="checkbox",name="IfNeedToCompletelyApart",x=2,y=3,width=1,height=1,label="是否需要完全分开单双数行",value=true},
+	[20]={class="checkbox",name="IfReverseLine",x=3,y=3,width=1,height=1,label="是否需要反转单双数行",value=false},
 }
 
 
@@ -162,6 +166,12 @@ function SplitLine(subs,sel)
 	   --DeleteSplitStyleLine是否选择了：是否删除要被拆分的样式行
 	   local IntervalTime = results["IntervalTime"];
 
+	   --IfNeedToCompletelyApart是否选择了：是否需要让单数行全在上面，双数行全在下面？
+	   local IfNeedToCompletelyApart = results["IfNeedToCompletelyApart"];
+
+	   --IfReverseLine是否选择了：是否需要反转单双数行
+	   local IfReverseLine = results["IfReverseLine"];
+	   
 	   --3.统计要被拆分的特定样式的行数
 	   local TotalProcessLineNum = 0;
 	   for i=1,#subs,1 do
@@ -210,8 +220,12 @@ function SplitLine(subs,sel)
 							NewLine.start_time = (j-1)/2*IntervalTime ;
 							NewLine.end_time = (j+1)/2*IntervalTime;
 
-							--subs.append(NewLine);
-							table.insert(FirstTable,NewLine);
+							if IfNeedToCompletelyApart==true  
+							then
+								table.insert(FirstTable,NewLine);
+							else
+								subs.append(NewLine);
+							end
 			   			end
 					end
 					--双数行
@@ -228,29 +242,40 @@ function SplitLine(subs,sel)
 							 
 							NewLine.start_time = (j-2)/2*IntervalTime;
 							NewLine.end_time = j/2*IntervalTime;
-							--subs.append(NewLine);
-							table.insert(SecondTable,NewLine);
+
+							if IfNeedToCompletelyApart==true  
+							then
+								table.insert(SecondTable,NewLine);
+							else
+								subs.append(NewLine);
+							end
 			   			end
 					end
 
 					--用于每次插入完一句双语(即两句话后，互换位置，视觉上呈现按顺序排列)
-					-- if j%2==0 then
-					-- 	local temp = subs[#subs-1];
-					-- 	subs[#subs-1] = subs[#subs];
-					-- 	subs[#subs] = temp;
-					-- end
+					if IfNeedToCompletelyApart==false  then
+						if IfReverseLine==false  then
+							if j%2==0 then
+								local temp = subs[#subs-1];
+								subs[#subs-1] = subs[#subs];
+								subs[#subs] = temp;
+							end
+						end
+					end
 			   end
 
 			   
-			    --先插入双数行，再插入单数行
-				local lengOfSecondTable = TableLeng(SecondTable);
-				for n=1,lengOfSecondTable,1 do
-					subs.append(SecondTable[n]);
-				end
+				--先插入双数行，再插入单数行
+				if IfNeedToCompletelyApart==true  then
+					local lengOfSecondTable = TableLeng(SecondTable);
+					for n=1,lengOfSecondTable,1 do
+						subs.append(SecondTable[n]);
+					end
 
-				local lengOfFirstTable = TableLeng(FirstTable);
-				for m=1,lengOfFirstTable,1 do
-					subs.append(FirstTable[m]);
+					local lengOfFirstTable = TableLeng(FirstTable);
+					for m=1,lengOfFirstTable,1 do
+						subs.append(FirstTable[m]);
+					end
 				end
 
 		    --    local FirstText = SplitTextTable[1];
