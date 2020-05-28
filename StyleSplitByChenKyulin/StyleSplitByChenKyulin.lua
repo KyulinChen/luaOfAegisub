@@ -188,6 +188,12 @@ function SplitLine(subs,sel)
 			   local SplitTextTable = Split(line.text,SplitCharacter);
 			   local lengOfSplitTextTable = TableLeng(SplitTextTable);
 
+			   --用于储存单数行
+			   local FirstTable = {};
+
+			   --用于出处双数行
+			   local SecondTable = {};
+
 			   for j=1,lengOfSplitTextTable,1 do
 					--单数行
 					if j%2==1 then
@@ -204,7 +210,8 @@ function SplitLine(subs,sel)
 							NewLine.start_time = (j-1)/2*IntervalTime ;
 							NewLine.end_time = (j+1)/2*IntervalTime;
 
-					 		subs.append(NewLine);
+							--subs.append(NewLine);
+							table.insert(FirstTable,NewLine);
 			   			end
 					end
 					--双数行
@@ -221,17 +228,30 @@ function SplitLine(subs,sel)
 							 
 							NewLine.start_time = (j-2)/2*IntervalTime;
 							NewLine.end_time = j/2*IntervalTime;
-					 		subs.append(NewLine);
+							--subs.append(NewLine);
+							table.insert(SecondTable,NewLine);
 			   			end
 					end
 
 					--用于每次插入完一句双语(即两句话后，互换位置，视觉上呈现按顺序排列)
-					if j%2==0 then
-						local temp = subs[#subs-1];
-						subs[#subs-1] = subs[#subs];
-						subs[#subs] = temp;
-					end
+					-- if j%2==0 then
+					-- 	local temp = subs[#subs-1];
+					-- 	subs[#subs-1] = subs[#subs];
+					-- 	subs[#subs] = temp;
+					-- end
 			   end
+
+			   
+			    --先插入双数行，再插入单数行
+				local lengOfSecondTable = TableLeng(SecondTable);
+				for n=1,lengOfSecondTable,1 do
+					subs.append(SecondTable[n]);
+				end
+
+				local lengOfFirstTable = TableLeng(FirstTable);
+				for m=1,lengOfFirstTable,1 do
+					subs.append(FirstTable[m]);
+				end
 
 		    --    local FirstText = SplitTextTable[1];
 			--    local SecondText = SplitTextTable[2];
@@ -256,8 +276,9 @@ function SplitLine(subs,sel)
 			-- 		 NewLine.layer = SecondPartLayer;
 			-- 		 subs.append(NewLine);		   
 			--    end
-          end
-          --设置处理进度条
+		  end
+		  
+          --每次处理完一行选中对应样式文本，更新处理进度条
 		  aegisub.progress.set(CurrentProcessLineNum/TotalProcessLineNum);
 	   end
 
