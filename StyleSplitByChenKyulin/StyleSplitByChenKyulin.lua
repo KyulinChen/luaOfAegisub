@@ -1,10 +1,10 @@
 
-script_name = "LineSplitBySpecifySeparator"
+script_name = "针对指定样式的行，以指定分隔符进行切割（主要用于双语字幕）"--LineSplitBySpecifySeparator
 script_description ="Use it to Split Styled Bilingual line to N lines with specific style\n将制定样式的行，根据分隔符，切割成多行，并且单双行可以指定样式.";
 script_author = "ChenKyulin";
-script_version = "1.1";
+script_version = "1.2";
 script_created = "2020/05/24";
-script_last_update_date = "2020/05/28";
+script_last_update_date = "2020/05/29";
 
 require "karaskel"
 require "re"
@@ -36,7 +36,8 @@ dialog_config=
 	[18]={class="edit",name="IntervalTime",x=1,y=3,width=1,height=1,value="5000"},
 	--add by chenKyulin 20200528 是否需要让单数行全在上面，双数行全在下面？
 	[19]={class="checkbox",name="IfNeedToCompletelyApart",x=2,y=3,width=1,height=1,label="是否需要完全分开单双数行",value=true},
-	[20]={class="checkbox",name="IfReverseLine",x=3,y=3,width=1,height=1,label="是否需要反转单双数行",value=false},
+	[20]={class="checkbox",name="IfReverseLine",x=3,y=3,width=1,height=1,label="是否需要反转单双数行\n（完全分开单双数行时失效）",value=false},
+	[21]={class="checkbox",name="IfNeedDoubleContect",x=4,y=3,width=1,height=1,label="是否需要两行并成一行\n(即一行原文一行译文在同一行中,完全分开单双数行时失效)",value=false},
 }
 
 
@@ -171,6 +172,9 @@ function SplitLine(subs,sel)
 
 	   --IfReverseLine是否选择了：是否需要反转单双数行
 	   local IfReverseLine = results["IfReverseLine"];
+
+	   --IfNeedDoubleContect是否选择了：是否需要两行并成一行
+	   local IfNeedDoubleContect = results["IfNeedDoubleContect"];
 	   
 	   --3.统计要被拆分的特定样式的行数
 	   local TotalProcessLineNum = 0;
@@ -204,6 +208,9 @@ function SplitLine(subs,sel)
 			   --用于出处双数行
 			   local SecondTable = {};
 
+			   --用于储存并行所需要的数据
+			   local tempOneLine = subs[i];
+
 			   for j=1,lengOfSplitTextTable,1 do
 					--单数行
 					if j%2==1 then
@@ -224,7 +231,16 @@ function SplitLine(subs,sel)
 							then
 								table.insert(FirstTable,NewLine);
 							else
-								subs.append(NewLine);
+								--20200529 两行并成一行
+								if IfNeedDoubleContect==true
+								then
+									NewLine.start_time = j*IntervalTime;
+									NewLine.end_time = (j+1)*IntervalTime;
+									tempOneLine = table.copy(NewLine);
+								else
+									subs.append(NewLine);
+								end
+								-----------end 20200529
 							end
 			   			end
 					end
@@ -247,7 +263,15 @@ function SplitLine(subs,sel)
 							then
 								table.insert(SecondTable,NewLine);
 							else
-								subs.append(NewLine);
+								--20200529 两行并成一行
+								if IfNeedDoubleContect==true
+								then
+									tempOneLine.text = tempOneLine.text..SplitCharacter..NewLine.text;
+									subs.append(tempOneLine);
+								else
+									subs.append(NewLine);
+								end
+								-----------end 20200529
 							end
 			   			end
 					end
@@ -255,10 +279,12 @@ function SplitLine(subs,sel)
 					--用于每次插入完一句双语(即两句话后，互换位置，视觉上呈现按顺序排列)
 					if IfNeedToCompletelyApart==false  then
 						if IfReverseLine==false  then
-							if j%2==0 then
-								local temp = subs[#subs-1];
-								subs[#subs-1] = subs[#subs];
-								subs[#subs] = temp;
+							if IfNeedDoubleContect==false then
+								if j%2==0 then
+									local temp = subs[#subs-1];
+									subs[#subs-1] = subs[#subs];
+									subs[#subs] = temp;
+								end
 							end
 						end
 					end
