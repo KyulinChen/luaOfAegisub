@@ -234,8 +234,9 @@ function SplitLine(subs,sel)
 								--20200529 两行并成一行
 								if IfNeedDoubleContect==true
 								then
-									NewLine.start_time = j*IntervalTime;
-									NewLine.end_time = (j+1)*IntervalTime;
+									-- hide by chenKyulin 20200703 多余代码
+-- 									NewLine.start_time = j*IntervalTime;
+-- 									NewLine.end_time = (j+1)*IntervalTime;
 									tempOneLine = table.copy(NewLine);
 								else
 									subs.append(NewLine);
